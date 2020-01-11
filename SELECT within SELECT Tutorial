@@ -1,0 +1,58 @@
+#1
+SELECT name FROM world
+WHERE population > (SELECT population FROM world WHERE name = 'Russia');
+
+#2 - method one
+WITH EU_world AS (SELECT name, gdp/population AS gdp_per_capita FROM world WHERE continent = 'Europe')
+SELECT name FROM EU_world 
+WHERE gdp_per_capita > (SELECT gdp_per_capita FROM EU_world WHERE name = 'United Kingdom');
+
+#2 - method two
+SELECT name FROM world
+WHERE (continent = 'Europe') 
+AND (gdp/population > (SELECT gdp/population FROM world WHERE name = 'United Kingdom'));
+
+#3
+SELECT name, continent FROM world
+WHERE continent IN (SELECT continent FROM world WHERE name IN ('Argentina','Australia'))
+ORDER BY name;
+
+#4
+SELECT name, population FROM world 
+WHERE population > (SELECT population FROM world WHERE name = 'Canada') 
+AND population < (SELECT population FROM world WHERE name = 'Poland');
+
+#5
+SELECT name, 
+CONCAT(ROUND(100*population/(SELECT population FROM world WHERE name = 'Germany')),'%') FROM world
+WHERE continent = 'Europe' 
+
+#6
+SELECT name FROM world
+WHERE gdp > ALL(SELECT gdp FROM world WHERE continent = 'Europe' AND gdp IS NOT NULL);
+
+#7 - method one
+WITH max_area_continent AS (SELECT MAX(area) AS max_area, continent FROM world GROUP BY continent)
+SELECT continent, name, area FROM world
+WHERE area >= ALL(SELECT max_area FROM max_area_continent WHERE world.continent = max_area_continent.continent);
+
+#7 - method two
+WITH max_area_continent AS (SELECT MAX(area) AS max_area, continent FROM world GROUP BY continent)
+SELECT world.continent, world.name,world. area FROM world LEFT JOIN max_area_continent AS M ON (world.continent = M.continent) WHERE world.area >= M.max_area;
+
+#7 - method three
+SELECT x.continent, x.name, x.area FROM world AS x 
+WHERE x.area >= ALL(SELECT y.area FROM world y WHERE x.continent = y.continent);
+
+#8
+SELECT x.continent, x.name FROM world AS x
+WHERE x.name = (SELECT y.name FROM world y WHERE x.continent = y.continent ORDER BY y.name LIMIT 1);
+
+#9
+SELECT z.name, z.continent, z.population FROM world z
+WHERE z.continent IN  (SELECT x.continent FROM world x
+WHERE 25000000 >= ALL(SELECT y.population FROM world y WHERE x.continent = y.continent));
+
+#10
+SELECT x.name, x.continent FROM world x
+WHERE x.population > ALL(SELECT 3*y.population FROM world y WHERE x.continent = y.continent AND x.name != y.name);
