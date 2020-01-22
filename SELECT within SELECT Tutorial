@@ -42,11 +42,11 @@ SELECT world.continent, world.name,world. area FROM world LEFT JOIN max_area_con
 
 #7 - method three
 SELECT x.continent, x.name, x.area FROM world AS x 
-WHERE x.area >= ALL(SELECT y.area FROM world y WHERE x.continent = y.continent);
+WHERE x.area >= ALL(SELECT y.area FROM world y WHERE x.continent = y.continent AND y.area > 0);
 
 #8
 SELECT x.continent, x.name FROM world AS x
-WHERE x.name = (SELECT y.name FROM world y WHERE x.continent = y.continent ORDER BY y.name LIMIT 1);
+WHERE x.name <= ALL(SELECT y.name FROM world y WHERE x.continent = y.continent);
 
 #9
 SELECT z.name, z.continent, z.population FROM world z
